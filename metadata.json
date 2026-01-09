@@ -1,0 +1,5 @@
+{
+  "name": "REDEFINE HR Management Suite",
+  "description": "A high-performance HR and Asset Management internal tool for REDEFINE Asset Management GmbH, featuring role-based access, absence management with multi-stage approval, time tracking, and document management.",
+  "requestFramePermissions": []
+}
