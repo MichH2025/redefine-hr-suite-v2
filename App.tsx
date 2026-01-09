@@ -1,4 +1,3 @@
-
 import React, { useState, useEffect } from 'react';
 import { HashRouter, Routes, Route, Navigate } from 'react-router-dom';
 import Layout from './components/Layout';
@@ -21,17 +20,28 @@ const App: React.FC = () => {
 
   useEffect(() => {
     // Initial Session Check
-    supabase.auth.getSession().then(({ data: { session } }) => {
-      setSession(session);
-      if (session) fetchProfile(session.user.id);
-      else setLoading(false);
-    });
+    const checkSession = async () => {
+      try {
+        const { data: { session: currentSession } } = await (supabase.auth as any).getSession();
+        setSession(currentSession);
+        if (currentSession) {
+          await fetchProfile(currentSession.user.id);
+        } else {
+          setLoading(false);
+        }
+      } catch (err) {
+        console.error("Auth check failed:", err);
+        setLoading(false);
+      }
+    };
+
+    checkSession();
 
     // Real-time Auth Listener
-    const { data: { subscription } } = supabase.auth.onAuthStateChange((_event, session) => {
-      setSession(session);
-      if (session) {
-        fetchProfile(session.user.id);
+    const { data: { subscription } } = (supabase.auth as any).onAuthStateChange((_event: any, newSession: any) => {
+      setSession(newSession);
+      if (newSession) {
+        fetchProfile(newSession.user.id);
       } else {
         setCurrentUser(null);
         setAllUsers([]);
@@ -44,7 +54,6 @@ const App: React.FC = () => {
 
   const fetchProfile = async (userId: string) => {
     try {
-      // Row Level Security (RLS) ensures that employees can only see their own row.
       const { data, error } = await supabase
         .from('profiles')
         .select('*')
@@ -63,13 +72,11 @@ const App: React.FC = () => {
         };
         setCurrentUser(userObj);
         
-        // Administrators / CEO need all profiles for the documents & approval view
         if (userObj.role === UserRole.CEO || userObj.role === UserRole.TEAM_LEAD) {
           fetchAllProfiles();
         }
       } else {
-        // Handle case where profile record doesn't exist yet (auto-creation delay)
-        console.warn("Profil-Synchronisierung läuft...");
+        console.warn("Profil nicht gefunden, wird erstellt...");
         setTimeout(() => fetchProfile(userId), 1500);
       }
     } catch (err) {
@@ -96,15 +103,17 @@ const App: React.FC = () => {
     e.preventDefault();
     setLoading(true);
     setAuthError(null);
-    const { error } = await supabase.auth.signInWithPassword({ email, password });
-    if (error) {
+    try {
+      const { error } = await (supabase.auth as any).signInWithPassword({ email, password });
+      if (error) throw error;
+    } catch (error: any) {
       setAuthError("Anmeldung fehlgeschlagen. Bitte überprüfen Sie Ihre Zugangsdaten.");
       setLoading(false);
     }
   };
 
   const logout = async () => {
-    await supabase.auth.signOut();
+    await (supabase.auth as any).signOut();
   };
 
   if (loading && !session) return (
