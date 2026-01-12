@@ -1,4 +1,3 @@
-
 import React, { useState, useEffect } from 'react';
 import { User, UserRole, Document as HRDocument } from '../types';
 import { ICONS } from '../constants';
@@ -53,23 +52,76 @@ const Documents: React.FC<DocumentsProps> = ({ user, allUsers }) => {
     if (e.target.files && e.target.files[0]) {
       setIsUploading(true);
       const file = e.target.files[0];
+      const targetUser = user.role === UserRole.CEO ? targetUserId : user.id;
       
-      // In der finalen Version würde hier Supabase Storage genutzt.
-      // Wir erstellen den DB-Eintrag für die Datei:
-      const { error } = await supabase.from('documents').insert({
-        user_id: user.role === UserRole.CEO ? targetUserId : user.id,
-        name: file.name,
-        type: file.name.toLowerCase().includes('lohn') ? 'Lohnabrechnung' : 'Sonstiges',
-        upload_date: new Date().toISOString().split('T')[0],
-        url: 'https://placeholder.url/file' // Dummy URL für Prototyp
-      });
+      // Eindeutiger Dateiname: userId/timestamp_filename
+      const timestamp = Date.now();
+      const filePath = `${targetUser}/${timestamp}_${file.name}`;
+      
+      try {
+        // 1. Datei in Supabase Storage hochladen
+        const { data: uploadData, error: uploadError } = await supabase.storage
+          .from('documents')
+          .upload(filePath, file);
 
-      if (!error) {
+        if (uploadError) {
+          throw uploadError;
+        }
+
+        // 2. Öffentliche URL generieren (signierte URL für private Buckets)
+        const { data: urlData } = await supabase.storage
+          .from('documents')
+          .createSignedUrl(filePath, 60 * 60 * 24 * 365); // 1 Jahr gültig
+
+        const fileUrl = urlData?.signedUrl || '';
+
+        // 3. Datenbank-Eintrag erstellen
+        const { error: dbError } = await supabase.from('documents').insert({
+          user_id: targetUser,
+          name: file.name,
+          type: file.name.toLowerCase().includes('lohn') ? 'Lohnabrechnung' 
+              : file.name.toLowerCase().includes('vertrag') ? 'Vertrag' 
+              : 'Sonstiges',
+          upload_date: new Date().toISOString().split('T')[0],
+          url: fileUrl
+        });
+
+        if (dbError) {
+          throw dbError;
+        }
+
         fetchDocuments();
-      } else {
+      } catch (error: any) {
         alert("Fehler beim Hochladen: " + error.message);
       }
+      
       setIsUploading(false);
+    }
+  };
+
+  const handleDownload = async (doc: HRDocument) => {
+    try {
+      // Extrahiere den Dateipfad aus der URL oder erstelle ihn neu
+      // Die URL enthält den signierten Pfad - wir können sie direkt verwenden
+      if (doc.url && doc.url.startsWith('http')) {
+        window.open(doc.url, '_blank');
+      } else {
+        // Fallback: Neue signierte URL generieren
+        const filePath = `${doc.userId}/${doc.name}`;
+        const { data, error } = await supabase.storage
+          .from('documents')
+          .createSignedUrl(filePath, 60 * 60); // 1 Stunde gültig
+
+        if (error) {
+          throw error;
+        }
+
+        if (data?.signedUrl) {
+          window.open(data.signedUrl, '_blank');
+        }
+      }
+    } catch (error: any) {
+      alert("Fehler beim Download: " + error.message);
     }
   };
 
@@ -102,8 +154,8 @@ const Documents: React.FC<DocumentsProps> = ({ user, allUsers }) => {
             
             <label className="bg-brand-darkest text-white px-6 py-2.5 font-bold uppercase tracking-widest text-[10px] flex items-center justify-center gap-2 hover:bg-brand transition-all cursor-pointer h-10 w-full sm:w-auto shadow-xl shadow-brand-darkest/10">
               <ICONS.Plus size={14} /> 
-              {isUploading ? 'Wird gespeichert...' : 'Datei bereitstellen'}
-              <input type="file" className="hidden" onChange={handleUpload} disabled={isUploading} />
+              {isUploading ? 'Wird hochgeladen...' : 'Datei bereitstellen'}
+              <input type="file" className="hidden" onChange={handleUpload} disabled={isUploading} accept=".pdf,.doc,.docx,.xls,.xlsx,.png,.jpg,.jpeg" />
             </label>
           </div>
         )}
@@ -133,14 +185,12 @@ const Documents: React.FC<DocumentsProps> = ({ user, allUsers }) => {
               </div>
             </div>
 
-            <a 
-              href={doc.url} 
-              target="_blank" 
-              rel="noopener noreferrer"
+            <button 
+              onClick={() => handleDownload(doc)}
               className="w-full flex items-center justify-center gap-2 py-2 border border-brand-darkest text-brand-darkest text-[10px] font-bold uppercase tracking-widest hover:bg-brand-darkest hover:text-white transition-all"
             >
-              <ICONS.Download size={14} /> Download PDF
-            </a>
+              <ICONS.Download size={14} /> Download
+            </button>
           </div>
         ))}
         
