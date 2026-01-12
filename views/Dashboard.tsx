@@ -1,6 +1,5 @@
-
 import React, { useState, useEffect } from 'react';
-import { User, AbsenceRequest, AbsenceStatus } from '../types';
+import { User, AbsenceRequest, AbsenceStatus, AbsenceType } from '../types';
 import { formatDate } from '../services/holidayService';
 import { ICONS } from '../constants';
 import { supabase } from '../services/supabaseClient';
@@ -8,10 +7,12 @@ import { supabase } from '../services/supabaseClient';
 const Dashboard: React.FC<{ user: User }> = ({ user }) => {
   const [teamAbsences, setTeamAbsences] = useState<AbsenceRequest[]>([]);
   const [loading, setLoading] = useState(true);
+  const [usedVacationDays, setUsedVacationDays] = useState(0);
 
   useEffect(() => {
     fetchApprovedAbsences();
-  }, []);
+    fetchUsedVacationDays();
+  }, [user.id]);
 
   const fetchApprovedAbsences = async () => {
     setLoading(true);
@@ -40,6 +41,28 @@ const Dashboard: React.FC<{ user: User }> = ({ user }) => {
     setLoading(false);
   };
 
+  // Berechne die genutzten Urlaubstage des aktuellen Users
+  const fetchUsedVacationDays = async () => {
+    const currentYear = new Date().getFullYear();
+    const { data } = await supabase
+      .from('absences')
+      .select('days, type')
+      .eq('user_id', user.id)
+      .eq('status', AbsenceStatus.APPROVED)
+      .eq('type', AbsenceType.VACATION) // Nur Urlaub zählt, nicht Krankheit etc.
+      .gte('start_date', `${currentYear}-01-01`)
+      .lte('start_date', `${currentYear}-12-31`);
+
+    if (data) {
+      const totalUsed = data.reduce((sum, absence) => sum + (absence.days || 0), 0);
+      setUsedVacationDays(totalUsed);
+    }
+  };
+
+  // Berechne verbleibende Tage (30 Tage Jahresurlaub - genutzte Tage)
+  const totalVacationDays = 30;
+  const remainingDays = totalVacationDays - usedVacationDays;
+
   // Berechne wer HEUTE abwesend ist
   const todayStr = new Date().toISOString().split('T')[0];
   const absenteesToday = teamAbsences.filter(a => a.startDate <= todayStr && a.endDate >= todayStr);
@@ -51,11 +74,11 @@ const Dashboard: React.FC<{ user: User }> = ({ user }) => {
         <div className="p-8 border border-brand/10 premium-shadow bg-white flex flex-col justify-between h-44">
           <span className="text-[10px] font-bold uppercase tracking-widest text-brand/40">Mein Kontingent</span>
           <div className="flex items-baseline gap-2">
-            <span className="text-5xl font-bold text-brand">{user.remainingVacationDays}</span>
+            <span className="text-5xl font-bold text-brand">{remainingDays}</span>
             <span className="text-xs font-bold text-brand/40 uppercase tracking-widest">Tage übrig</span>
           </div>
           <div className="w-full bg-brand-soft h-1.5 mt-4">
-            <div className="bg-brand h-full transition-all duration-1000" style={{ width: `${Math.min((user.remainingVacationDays / 30) * 100, 100)}%` }}></div>
+            <div className="bg-brand h-full transition-all duration-1000" style={{ width: `${Math.min((remainingDays / totalVacationDays) * 100, 100)}%` }}></div>
           </div>
         </div>
 
