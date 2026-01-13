@@ -49,7 +49,7 @@ const Dashboard: React.FC<{ user: User }> = ({ user }) => {
       .select('days, type')
       .eq('user_id', user.id)
       .eq('status', AbsenceStatus.APPROVED)
-      .eq('type', AbsenceType.VACATION) // Nur Urlaub zählt, nicht Krankheit etc.
+      .eq('type', AbsenceType.VACATION)
       .gte('start_date', `${currentYear}-01-01`)
       .lte('start_date', `${currentYear}-12-31`);
 
