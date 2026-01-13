@@ -54,9 +54,10 @@ const Dashboard: React.FC<{ user: User }> = ({ user }) => {
       .lte('start_date', `${currentYear}-12-31`);
 
     if (data) {
-      const totalUsed = data.reduce((sum, absence) => sum + (absence.days || 0), 0);
-      setUsedVacationDays(totalUsed);
-    }
+  const totalUsed = data.reduce((sum, absence) => sum + (absence.days || 0), 0);
+  setUsedVacationDays(totalUsed);
+  console.log('Used vacation days:', totalUsed, 'Data:', data);
+}
   };
 
   // Berechne verbleibende Tage (30 Tage Jahresurlaub - genutzte Tage)
