@@ -69,7 +69,8 @@ const App: React.FC = () => {
           name: data.full_name || 'Mitarbeiter',
           email: data.email || session?.user?.email || '',
           role: (data.role as UserRole) || UserRole.EMPLOYEE,
-          remainingVacationDays: data.remaining_vacation_days ?? 30
+          remainingVacationDays: data.remaining_vacation_days ?? 30,
+          vacationDaysPreviousYear: data.vacation_days_previous_year ?? 0
         };
         setCurrentUser(userObj);
         
@@ -95,7 +96,8 @@ const App: React.FC = () => {
         name: d.full_name || 'Unbekannt',
         email: d.email || '',
         role: (d.role as UserRole) || UserRole.EMPLOYEE,
-        remainingVacationDays: d.remaining_vacation_days ?? 30
+        remainingVacationDays: d.remaining_vacation_days ?? 30,
+        vacationDaysPreviousYear: d.vacation_days_previous_year ?? 0
       })));
     }
   };

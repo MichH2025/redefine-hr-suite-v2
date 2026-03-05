@@ -11,6 +11,7 @@ export interface User {
   email: string;
   role: UserRole;
   remainingVacationDays: number;
+  vacationDaysPreviousYear: number;
 }
 
 export enum AbsenceType {
@@ -21,6 +22,7 @@ export enum AbsenceType {
 }
 
 export enum AbsenceStatus {
+  PLANNED = 'Geplant',
   PENDING_TEAM_LEAD = 'Wartet auf Teamleiter',
   PENDING_CEO = 'Wartet auf CEO',
   APPROVED = 'Freigegeben',

@@ -16,7 +16,9 @@ import {
   Download,
   Clock3,
   Pencil,
-  Trash2
+  Trash2,
+  Send,
+  PlaneTakeoff
 } from 'lucide-react';
 
 export const COLORS = {
@@ -42,5 +44,7 @@ export const ICONS = {
   Download: Download,
   Timer: Clock3,
   Pencil: Pencil,
-  Trash: Trash2
+  Trash: Trash2,
+  Send: Send,
+  PlaneTakeoff: PlaneTakeoff
 };

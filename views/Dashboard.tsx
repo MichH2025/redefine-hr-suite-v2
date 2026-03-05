@@ -16,12 +16,13 @@ const Dashboard: React.FC<{ user: User }> = ({ user }) => {
   const [teamAbsences, setTeamAbsences] = useState<AbsenceRequest[]>([]);
   const [loading, setLoading] = useState(true);
   const [usedVacationDays, setUsedVacationDays] = useState(0);
+  const [pendingVacationDays, setPendingVacationDays] = useState(0);
   const [activeFilter, setActiveFilter] = useState('Alle');
   const [searchQuery, setSearchQuery] = useState('');
 
   useEffect(() => {
     fetchApprovedAbsences();
-    fetchUsedVacationDays();
+    fetchVacationDays();
   }, [user.id]);
 
   const fetchApprovedAbsences = async () => {
@@ -51,25 +52,44 @@ const Dashboard: React.FC<{ user: User }> = ({ user }) => {
     setLoading(false);
   };
 
-  const fetchUsedVacationDays = async () => {
+  const fetchVacationDays = async () => {
     const currentYear = new Date().getFullYear();
-    const { data } = await supabase
+
+    // Genehmigte Urlaubstage
+    const { data: approvedData } = await supabase
       .from('absences')
-      .select('days, type')
+      .select('days')
       .eq('user_id', user.id)
       .eq('status', AbsenceStatus.APPROVED)
       .eq('type', AbsenceType.VACATION)
       .gte('start_date', `${currentYear}-01-01`)
       .lte('start_date', `${currentYear}-12-31`);
 
-    if (data) {
-      const totalUsed = data.reduce((sum, absence) => sum + (absence.days || 0), 0);
-      setUsedVacationDays(totalUsed);
+    if (approvedData) {
+      setUsedVacationDays(approvedData.reduce((sum, a) => sum + (a.days || 0), 0));
+    }
+
+    // Beantragte (pending) Urlaubstage
+    const { data: pendingData } = await supabase
+      .from('absences')
+      .select('days')
+      .eq('user_id', user.id)
+      .eq('type', AbsenceType.VACATION)
+      .in('status', [AbsenceStatus.PENDING_TEAM_LEAD, AbsenceStatus.PENDING_CEO])
+      .gte('start_date', `${currentYear}-01-01`)
+      .lte('start_date', `${currentYear}-12-31`);
+
+    if (pendingData) {
+      setPendingVacationDays(pendingData.reduce((sum, a) => sum + (a.days || 0), 0));
     }
   };
 
-  const totalVacationDays = 30;
-  const remainingDays = totalVacationDays - usedVacationDays;
+  const currentYear = new Date().getFullYear();
+  const baseVacationDays = user.remainingVacationDays;
+  const previousYearDays = user.vacationDaysPreviousYear;
+  const totalEntitlement = baseVacationDays + previousYearDays;
+  const remainingDays = totalEntitlement - usedVacationDays;
+  const usagePercent = totalEntitlement > 0 ? Math.round((usedVacationDays / totalEntitlement) * 100) : 0;
 
   const todayStr = new Date().toISOString().split('T')[0];
   const absenteesToday = teamAbsences.filter(a => a.startDate <= todayStr && a.endDate >= todayStr);
@@ -90,33 +110,76 @@ const Dashboard: React.FC<{ user: User }> = ({ user }) => {
     <div className="max-w-6xl mx-auto space-y-6 md:space-y-8 animate-fadeIn">
       {/* Top Banner */}
       <div className="grid grid-cols-1 md:grid-cols-3 gap-4 md:gap-6">
-        {/* Urlaubsbudget - prominent on mobile */}
-        <div className="p-6 md:p-8 border border-brand/10 premium-shadow bg-white flex flex-col justify-between h-auto md:h-44">
-          <span className="text-[10px] font-bold uppercase tracking-widest text-brand/40">Mein Kontingent</span>
-          <div className="flex items-baseline gap-2 my-3 md:my-0">
-            <span className="text-4xl md:text-5xl font-bold text-brand">{remainingDays}</span>
-            <span className="text-xs font-bold text-brand/40 uppercase tracking-widest">Tage übrig</span>
+        {/* Urlaubskonto - erweitert */}
+        <div className="md:col-span-2 p-6 md:p-8 border border-brand/10 premium-shadow bg-white">
+          <div className="flex items-center gap-2 mb-5">
+            <ICONS.PlaneTakeoff size={16} className="text-brand" />
+            <span className="text-[10px] font-bold uppercase tracking-widest text-brand/40">Mein Urlaubskonto {currentYear}</span>
           </div>
-          <div className="w-full bg-brand-soft h-1.5 mt-2 md:mt-4">
-            <div className="bg-brand h-full transition-all duration-1000" style={{ width: `${Math.min((remainingDays / totalVacationDays) * 100, 100)}%` }}></div>
-          </div>
-        </div>
 
-        <div className="p-6 md:p-8 border border-brand/10 premium-shadow bg-white flex flex-col justify-between h-auto md:h-44">
-          <span className="text-[10px] font-bold uppercase tracking-widest text-brand/40">Zuständigkeit</span>
-          <div className="mt-2 md:mt-0">
-            <div className="text-lg md:text-xl font-bold text-brand-darkest truncate">{user.name}</div>
-            <div className="text-[10px] text-brand uppercase font-bold tracking-[0.2em] mt-2 bg-brand-soft inline-block px-2 py-1">
-               {user.role === 'CEO' ? 'Geschäftsführung' : user.role === 'TEAM_LEAD' ? 'Teamleiter' : 'Asset Management Team'}
+          <div className="grid grid-cols-1 sm:grid-cols-2 gap-x-8 gap-y-2">
+            <div className="flex justify-between py-1.5">
+              <span className="text-xs text-brand/60">Jahresurlaub</span>
+              <span className="text-xs font-bold text-brand-darkest">{baseVacationDays} Tage</span>
+            </div>
+            {previousYearDays > 0 && (
+              <div className="flex justify-between py-1.5 sm:col-start-1">
+                <span className="text-xs text-brand/60">Resturlaub {currentYear - 1}</span>
+                <span className="text-xs font-bold text-brand-darkest">+ {previousYearDays} Tage</span>
+              </div>
+            )}
+            <div className="flex justify-between py-1.5 border-t border-brand/10 sm:col-start-1">
+              <span className="text-xs font-bold text-brand-darkest">Gesamtanspruch</span>
+              <span className="text-xs font-bold text-brand-darkest">{totalEntitlement} Tage</span>
+            </div>
+            <div className="flex justify-between py-1.5 sm:col-start-1">
+              <span className="text-xs text-brand/60">Genommen/Genehmigt</span>
+              <span className="text-xs font-bold text-red-600">- {usedVacationDays} Tage</span>
+            </div>
+            {pendingVacationDays > 0 && (
+              <div className="flex justify-between py-1.5 sm:col-start-1">
+                <span className="text-xs text-brand/60">Beantragt (offen)</span>
+                <span className="text-xs font-bold text-orange-500">- {pendingVacationDays} Tage</span>
+              </div>
+            )}
+            <div className="flex justify-between py-1.5 border-t border-brand/10 sm:col-start-1">
+              <span className="text-xs font-bold text-brand-darkest">Noch verfügbar</span>
+              <span className="text-sm font-bold text-brand">{remainingDays} Tage</span>
+            </div>
+          </div>
+
+          <div className="mt-4">
+            <div className="w-full bg-brand-soft h-2 rounded-full overflow-hidden">
+              <div
+                className="bg-brand h-full transition-all duration-1000 rounded-full"
+                style={{ width: `${Math.min(usagePercent, 100)}%` }}
+              ></div>
+            </div>
+            <div className="flex justify-between mt-1.5">
+              <span className="text-[9px] text-brand/40 font-bold uppercase tracking-widest">{usagePercent}% verbraucht</span>
+              <span className="text-[9px] text-brand/40 font-bold uppercase tracking-widest">{remainingDays} von {totalEntitlement} Tagen</span>
             </div>
           </div>
         </div>
 
-        <div className="p-6 md:p-8 border border-brand/10 premium-shadow bg-brand-darkest text-white flex flex-col justify-between h-auto md:h-44 shadow-2xl shadow-brand-darkest/20">
-          <span className="text-[10px] font-bold uppercase tracking-widest text-brand/40">Team-Präsenz Heute</span>
-          <div className="mt-2 md:mt-0">
-            <div className="text-3xl font-bold">{10 - absenteesToday.length} / 10</div>
-            <p className="text-[9px] font-bold text-brand-light uppercase mt-2 tracking-widest">Mitarbeiter im Office</p>
+        {/* Right column cards */}
+        <div className="flex flex-col gap-4 md:gap-6">
+          <div className="p-6 md:p-8 border border-brand/10 premium-shadow bg-white flex flex-col justify-between flex-1">
+            <span className="text-[10px] font-bold uppercase tracking-widest text-brand/40">Zuständigkeit</span>
+            <div className="mt-2">
+              <div className="text-lg md:text-xl font-bold text-brand-darkest truncate">{user.name}</div>
+              <div className="text-[10px] text-brand uppercase font-bold tracking-[0.2em] mt-2 bg-brand-soft inline-block px-2 py-1">
+                 {user.role === 'CEO' ? 'Geschäftsführung' : user.role === 'TEAM_LEAD' ? 'Teamleiter' : 'Asset Management Team'}
+              </div>
+            </div>
+          </div>
+
+          <div className="p-6 md:p-8 border border-brand/10 premium-shadow bg-brand-darkest text-white flex flex-col justify-between flex-1 shadow-2xl shadow-brand-darkest/20">
+            <span className="text-[10px] font-bold uppercase tracking-widest text-brand/40">Team-Präsenz Heute</span>
+            <div className="mt-2">
+              <div className="text-3xl font-bold">{10 - absenteesToday.length} / 10</div>
+              <p className="text-[9px] font-bold text-brand-light uppercase mt-2 tracking-widest">Mitarbeiter im Office</p>
+            </div>
           </div>
         </div>
       </div>
