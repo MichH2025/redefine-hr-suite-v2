@@ -50,11 +50,32 @@ export interface TimeEntry {
   duration?: number; // in hours
 }
 
+export type DocumentType =
+  | 'Verdienstabrechnung'
+  | 'Jahressteuermeldung'
+  | 'Arbeitsvertrag'
+  | 'Nachtrag'
+  | 'Krankmeldung'
+  | 'Sonstiges';
+
+export const DOCUMENT_TYPES: DocumentType[] = [
+  'Verdienstabrechnung',
+  'Jahressteuermeldung',
+  'Arbeitsvertrag',
+  'Nachtrag',
+  'Krankmeldung',
+  'Sonstiges'
+];
+
 export interface Document {
   id: string;
   userId: string;
   name: string;
-  type: 'Lohnabrechnung' | 'Vertrag' | 'Sonstiges';
+  documentType: DocumentType;
+  referenceMonth?: string;
+  referenceYear?: number;
+  absenceId?: string;
   uploadDate: string;
   url: string;
+  storagePath: string;
 }

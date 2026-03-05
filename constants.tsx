@@ -18,7 +18,11 @@ import {
   Pencil,
   Trash2,
   Send,
-  PlaneTakeoff
+  PlaneTakeoff,
+  Upload,
+  Folder,
+  FilePlus,
+  AlertCircle
 } from 'lucide-react';
 
 export const COLORS = {
@@ -46,5 +50,9 @@ export const ICONS = {
   Pencil: Pencil,
   Trash: Trash2,
   Send: Send,
-  PlaneTakeoff: PlaneTakeoff
+  PlaneTakeoff: PlaneTakeoff,
+  Upload: Upload,
+  Folder: Folder,
+  FilePlus: FilePlus,
+  Alert: AlertCircle
 };

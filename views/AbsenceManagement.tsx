@@ -1,11 +1,13 @@
 
 import React, { useState, useEffect } from 'react';
+import { useNavigate } from 'react-router-dom';
 import { User, UserRole, AbsenceType, AbsenceRequest, AbsenceStatus } from '../types';
 import { calculateWorkingDays, formatDate } from '../services/holidayService';
 import { ICONS } from '../constants';
 import { supabase } from '../services/supabaseClient';
 
 const AbsenceManagement: React.FC<{ user: User }> = ({ user }) => {
+  const navigate = useNavigate();
   const [requests, setRequests] = useState<AbsenceRequest[]>([]);
   const [isModalOpen, setIsModalOpen] = useState(false);
   const [modalMode, setModalMode] = useState<'plan' | 'submit'>('submit');
@@ -244,6 +246,14 @@ const AbsenceManagement: React.FC<{ user: User }> = ({ user }) => {
               <p className="text-xs md:text-sm text-brand/60">
                 {formatDate(req.startDate)} &mdash; {formatDate(req.endDate)}
               </p>
+              {req.type === AbsenceType.SICK_LEAVE && req.status !== AbsenceStatus.PLANNED && (
+                <button
+                  onClick={() => navigate('/documents')}
+                  className="mt-2 flex items-center gap-1.5 text-[10px] font-bold text-orange-600 hover:text-orange-700 uppercase tracking-widest transition-colors"
+                >
+                  <ICONS.Alert size={12} /> Bitte Krankmeldung hochladen
+                </button>
+              )}
             </div>
             <div className="flex items-center gap-3 w-full md:w-auto justify-end">
               {isPlanned(req) && (
