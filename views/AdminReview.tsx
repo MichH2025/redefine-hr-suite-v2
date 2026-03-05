@@ -90,15 +90,15 @@ const AdminReview: React.FC<{ user: User }> = ({ user }) => {
   };
 
   return (
-    <div className="max-w-6xl mx-auto space-y-8 animate-fadeIn">
-      <div className="border-b border-brand/10 pb-6 flex flex-col sm:flex-row justify-between sm:items-center gap-4">
+    <div className="max-w-6xl mx-auto space-y-6 md:space-y-8 animate-fadeIn">
+      <div className="border-b border-brand/10 pb-4 md:pb-6 flex flex-col sm:flex-row justify-between sm:items-center gap-4">
         <div>
-          <h1 className="text-3xl font-bold tracking-tight text-brand-darkest uppercase">Freigaben & Controlling</h1>
+          <h1 className="text-xl md:text-3xl font-bold tracking-tight text-brand-darkest uppercase">Freigaben & Controlling</h1>
           <p className="text-brand/50 text-[10px] mt-1 uppercase tracking-[0.2em] font-bold">
             {user.role === UserRole.CEO ? 'Management Review (2. Instanz)' : 'Teamleiter Review (1. Instanz)'}
           </p>
         </div>
-        <div className="bg-brand-soft/50 px-6 py-3 border border-brand/10 text-center sm:text-right">
+        <div className="bg-brand-soft/50 px-4 md:px-6 py-3 border border-brand/10 text-center sm:text-right">
           <div className="text-2xl font-bold text-brand leading-none">{requests.length}</div>
           <div className="text-[9px] text-brand/40 uppercase font-bold tracking-widest mt-1">Ausstehende Anträge</div>
         </div>
@@ -108,19 +108,19 @@ const AdminReview: React.FC<{ user: User }> = ({ user }) => {
         {loading ? (
           <div className="text-center py-20 text-brand/20 uppercase text-[10px] font-bold tracking-[0.4em]">Prüfe Berechtigungen & Lade Daten...</div>
         ) : requests.length > 0 ? (requests.map(req => (
-          <div key={req.id} className="border border-brand/10 bg-white premium-shadow p-6 flex flex-col lg:flex-row justify-between lg:items-center gap-6 transition-all hover:border-brand/30">
+          <div key={req.id} className="border border-brand/10 bg-white premium-shadow p-4 md:p-6 flex flex-col lg:flex-row justify-between lg:items-center gap-4 md:gap-6 transition-all hover:border-brand/30">
             <div className="flex-1">
               <div className="flex items-center gap-3 mb-2">
                 <span className="font-bold text-brand-darkest uppercase tracking-tight text-sm">{req.userName}</span>
                 <span className="text-[9px] font-bold text-brand/50 border border-brand/10 px-2 py-0.5 uppercase bg-brand-soft/30 tracking-widest">{req.type}</span>
               </div>
-              <div className="text-xs text-brand-dark/70 flex items-center gap-2 font-bold">
+              <div className="text-xs text-brand-dark/70 flex flex-wrap items-center gap-1 md:gap-2 font-bold">
                 <ICONS.Calendar size={14} className="text-brand" />
-                {formatDate(req.startDate)} <span className="text-brand/20">→</span> {formatDate(req.endDate)} 
-                <span className="mx-2 text-brand/10">|</span>
+                <span>{formatDate(req.startDate)}</span> <span className="text-brand/20">→</span> <span>{formatDate(req.endDate)}</span>
+                <span className="mx-1 md:mx-2 text-brand/10">|</span>
                 <span className="text-brand">{req.days} Arbeitstage</span>
               </div>
-              <div className="mt-3 flex items-center gap-2">
+              <div className="mt-2 md:mt-3 flex items-center gap-2">
                 <div className="w-1 h-1 rounded-full bg-brand animate-pulse"></div>
                 <div className="text-[9px] font-bold uppercase tracking-widest text-brand/40">
                   Status: <span className="text-brand-darkest">{req.status}</span>
@@ -128,25 +128,25 @@ const AdminReview: React.FC<{ user: User }> = ({ user }) => {
               </div>
             </div>
 
-            <div className="flex flex-col sm:flex-row gap-3">
-              <button 
+            <div className="flex gap-3">
+              <button
                 onClick={() => handleAction(req.id, 'reject')}
-                className="px-6 py-3 border border-brand-darkest text-brand-darkest font-bold uppercase tracking-widest text-[10px] hover:bg-red-50 hover:text-red-600 hover:border-red-600 transition-all flex items-center justify-center gap-2"
+                className="flex-1 sm:flex-none px-4 md:px-6 py-3 border border-brand-darkest text-brand-darkest font-bold uppercase tracking-widest text-[10px] hover:bg-red-50 hover:text-red-600 hover:border-red-600 transition-all flex items-center justify-center gap-2"
               >
                 <ICONS.X size={14} /> Ablehnen
               </button>
-              <button 
+              <button
                 onClick={() => handleAction(req.id, 'approve')}
-                className="px-6 py-3 bg-brand-darkest text-white font-bold uppercase tracking-widest text-[10px] hover:bg-brand transition-all flex items-center justify-center gap-2 shadow-xl shadow-brand-darkest/10"
+                className="flex-1 sm:flex-none px-4 md:px-6 py-3 bg-brand-darkest text-white font-bold uppercase tracking-widest text-[10px] hover:bg-brand transition-all flex items-center justify-center gap-2 shadow-xl shadow-brand-darkest/10"
               >
-                <ICONS.Check size={14} /> {user.role === UserRole.CEO ? 'Final Freigeben' : 'Bestätigen (An CEO)'}
+                <ICONS.Check size={14} /> {user.role === UserRole.CEO ? 'Freigeben' : 'Bestätigen'}
               </button>
             </div>
           </div>
         ))) : (
-          <div className="p-24 border-2 border-dashed border-brand/10 text-center bg-brand-soft/10">
+          <div className="p-16 md:p-24 border-2 border-dashed border-brand/10 text-center bg-brand-soft/10">
             <ICONS.Check size={32} className="mx-auto text-brand/20 mb-4" />
-            <p className="text-brand/30 uppercase tracking-[0.3em] text-[10px] font-bold">Alles erledigt. Keine offenen Anfragen im Posteingang.</p>
+            <p className="text-brand/30 uppercase tracking-[0.3em] text-[10px] font-bold">Alles erledigt. Keine offenen Anfragen.</p>
           </div>
         )}
       </div>

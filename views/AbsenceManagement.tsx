@@ -95,37 +95,37 @@ const AbsenceManagement: React.FC<{ user: User }> = ({ user }) => {
   };
 
   return (
-    <div className="max-w-6xl mx-auto space-y-8 animate-fadeIn">
-      <div className="flex justify-between items-end border-b border-brand/10 pb-6">
+    <div className="max-w-6xl mx-auto space-y-6 md:space-y-8 animate-fadeIn">
+      <div className="flex flex-col md:flex-row justify-between items-start md:items-end border-b border-brand/10 pb-4 md:pb-6 gap-4">
         <div>
-          <h1 className="text-3xl font-bold tracking-tight text-brand-darkest">Meine Abwesenheiten</h1>
-          <p className="text-brand/50 text-sm mt-1 uppercase tracking-widest">Urlaub, Homeoffice & Krankheit</p>
+          <h1 className="text-xl md:text-3xl font-bold tracking-tight text-brand-darkest">Meine Abwesenheiten</h1>
+          <p className="text-brand/50 text-[10px] md:text-sm mt-1 uppercase tracking-widest">Urlaub, Homeoffice & Krankheit</p>
         </div>
-        <button 
+        <button
           onClick={() => setIsModalOpen(true)}
-          className="bg-brand text-white px-6 py-3 font-bold uppercase tracking-widest text-xs flex items-center gap-2 hover:bg-brand-dark transition-all premium-shadow"
+          className="bg-brand text-white px-6 py-3 font-bold uppercase tracking-widest text-xs flex items-center gap-2 hover:bg-brand-dark transition-all premium-shadow w-full md:w-auto justify-center"
         >
           <ICONS.Plus size={16} /> Antrag Erstellen
         </button>
       </div>
 
-      <div className="grid grid-cols-1 gap-6">
+      <div className="grid grid-cols-1 gap-4 md:gap-6">
         {loading ? (
           <div className="text-center py-10 text-brand/30 uppercase text-xs font-bold tracking-widest">Daten werden geladen...</div>
         ) : requests.map(req => (
-          <div key={req.id} className="p-6 border border-brand/10 bg-white premium-shadow flex flex-col md:flex-row justify-between items-start md:items-center gap-4 transition-transform hover:scale-[1.01]">
-            <div>
+          <div key={req.id} className="p-4 md:p-6 border border-brand/10 bg-white premium-shadow flex flex-col md:flex-row justify-between items-start md:items-center gap-3 md:gap-4 transition-transform hover:scale-[1.01]">
+            <div className="w-full md:w-auto">
               <div className="flex items-center gap-3 mb-1">
-                <span className="text-lg font-bold text-brand-darkest">{req.type}</span>
+                <span className="text-base md:text-lg font-bold text-brand-darkest">{req.type}</span>
                 <span className={`text-[9px] font-bold uppercase tracking-widest px-2 py-1 border ${getStatusColor(req.status)}`}>
                   {req.status}
                 </span>
               </div>
-              <p className="text-sm text-brand/60">
+              <p className="text-xs md:text-sm text-brand/60">
                 {formatDate(req.startDate)} &mdash; {formatDate(req.endDate)}
               </p>
             </div>
-            <div className="flex items-center gap-8 w-full md:w-auto justify-between">
+            <div className="flex items-center w-full md:w-auto justify-end md:justify-between">
               <div className="text-right">
                 <div className="text-sm font-bold text-brand-darkest uppercase tracking-widest">{req.days} Tage</div>
                 <div className="text-[10px] text-brand/40 uppercase font-bold">Arbeitstage</div>
@@ -134,23 +134,23 @@ const AbsenceManagement: React.FC<{ user: User }> = ({ user }) => {
           </div>
         ))}
         {!loading && requests.length === 0 && (
-          <div className="p-20 border-2 border-dashed border-brand/10 text-center bg-brand-soft/20 text-brand/30 uppercase tracking-widest text-xs font-bold">
+          <div className="p-12 md:p-20 border-2 border-dashed border-brand/10 text-center bg-brand-soft/20 text-brand/30 uppercase tracking-widest text-xs font-bold">
             Keine Anträge gefunden
           </div>
         )}
       </div>
 
       {isModalOpen && (
-        <div className="fixed inset-0 bg-brand-darkest/40 z-50 flex items-center justify-center p-4 backdrop-blur-sm">
-          <div className="bg-white max-w-lg w-full p-8 border border-brand/20 premium-shadow">
+        <div className="fixed inset-0 bg-brand-darkest/40 z-50 flex items-end md:items-center justify-center md:p-4 backdrop-blur-sm">
+          <div className="bg-white w-full md:max-w-lg p-6 md:p-8 border-t md:border border-brand/20 premium-shadow rounded-t-2xl md:rounded-none max-h-[90vh] overflow-y-auto">
             <div className="flex justify-between items-center mb-6">
-              <h2 className="text-xl font-bold uppercase tracking-widest text-brand-darkest">Neuer Antrag</h2>
-              <button onClick={() => setIsModalOpen(false)} className="text-brand/40 hover:text-brand"><ICONS.X size={20} /></button>
+              <h2 className="text-lg md:text-xl font-bold uppercase tracking-widest text-brand-darkest">Neuer Antrag</h2>
+              <button onClick={() => setIsModalOpen(false)} className="text-brand/40 hover:text-brand p-3"><ICONS.X size={20} /></button>
             </div>
-            <form onSubmit={handleSubmit} className="space-y-6">
+            <form onSubmit={handleSubmit} className="space-y-5 md:space-y-6">
               <div>
                 <label className="block text-[10px] font-bold uppercase tracking-widest text-brand/50 mb-2">Typ der Abwesenheit</label>
-                <select 
+                <select
                   className="w-full border border-brand/10 p-3 text-sm focus:border-brand outline-none bg-brand-soft/20 text-brand-darkest font-bold"
                   value={form.type}
                   onChange={e => setForm({...form, type: e.target.value as AbsenceType})}
@@ -170,13 +170,13 @@ const AbsenceManagement: React.FC<{ user: User }> = ({ user }) => {
               </div>
 
               {calculatedPreview !== null && (
-                <div className="flex items-center justify-between p-4 bg-brand text-white shadow-lg shadow-brand/20">
-                  <span className="text-xs font-bold uppercase tracking-widest">Berechnete Arbeitstage:</span>
-                  <span className="text-xl font-bold">{calculatedPreview} {calculatedPreview === 1 ? 'Tag' : 'Tage'}</span>
+                <div className="flex items-center justify-between p-3 md:p-4 bg-brand text-white shadow-lg shadow-brand/20">
+                  <span className="text-[10px] md:text-xs font-bold uppercase tracking-widest">Berechnete Arbeitstage:</span>
+                  <span className="text-lg md:text-xl font-bold">{calculatedPreview} {calculatedPreview === 1 ? 'Tag' : 'Tage'}</span>
                 </div>
               )}
 
-              <div className="flex gap-4 pt-4">
+              <div className="flex flex-col-reverse md:flex-row gap-3 md:gap-4 pt-4 pb-2 md:pb-0">
                 <button type="button" onClick={() => setIsModalOpen(false)} className="flex-1 px-6 py-3 border border-brand-darkest text-brand-darkest font-bold uppercase tracking-widest text-xs hover:bg-brand-soft transition-colors">Abbrechen</button>
                 <button type="submit" disabled={calculatedPreview === null} className="flex-1 px-6 py-3 bg-brand text-white font-bold uppercase tracking-widest text-xs hover:bg-brand-dark transition-all disabled:opacity-50 shadow-lg shadow-brand/10">Antrag senden</button>
               </div>

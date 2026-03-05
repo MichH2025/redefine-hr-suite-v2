@@ -1,11 +1,12 @@
 import React, { useState, useEffect } from 'react';
 import { HashRouter, Routes, Route, Navigate } from 'react-router-dom';
-import Layout from './components/Layout';
+import ResponsiveShell from './components/ResponsiveShell';
 import Dashboard from './views/Dashboard';
 import AbsenceManagement from './views/AbsenceManagement';
 import TimeTracking from './views/TimeTracking';
 import Documents from './views/Documents';
 import AdminReview from './views/AdminReview';
+import TeamCalendar from './views/TeamCalendar';
 import { User, UserRole } from './types';
 import { supabase } from './services/supabaseClient';
 
@@ -182,20 +183,21 @@ const App: React.FC = () => {
 
   return (
     <HashRouter>
-      <Layout user={currentUser} onLogout={logout}>
+      <ResponsiveShell user={currentUser} onLogout={logout}>
         <Routes>
           <Route path="/" element={<Dashboard user={currentUser} />} />
           <Route path="/absences" element={<AbsenceManagement user={currentUser} />} />
+          <Route path="/calendar" element={<TeamCalendar user={currentUser} />} />
           <Route path="/time" element={<TimeTracking user={currentUser} />} />
           <Route path="/documents" element={<Documents user={currentUser} allUsers={allUsers} />} />
-          
+
           {(currentUser.role === UserRole.CEO || currentUser.role === UserRole.TEAM_LEAD) && (
             <Route path="/admin" element={<AdminReview user={currentUser} />} />
           )}
-          
+
           <Route path="*" element={<Navigate to="/" replace />} />
         </Routes>
-      </Layout>
+      </ResponsiveShell>
     </HashRouter>
   );
 };

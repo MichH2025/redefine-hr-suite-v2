@@ -45,6 +45,7 @@ const Layout: React.FC<LayoutProps> = ({ user, onLogout, children }) => {
         <nav className="flex-1 mt-4">
           <NavItem to="/" icon={ICONS.Dashboard} label="Dashboard" />
           <NavItem to="/absences" icon={ICONS.Calendar} label="Abwesenheit" />
+          <NavItem to="/calendar" icon={ICONS.TeamCalendar} label="Team-Kalender" />
           <NavItem to="/time" icon={ICONS.Time} label="Zeiterfassung" />
           <NavItem to="/documents" icon={ICONS.Documents} label="Dokumente" />
           
@@ -77,7 +78,9 @@ const Layout: React.FC<LayoutProps> = ({ user, onLogout, children }) => {
       <main className="flex-1 ml-64 min-h-screen bg-brand-soft/30">
         <header className="h-16 border-b border-brand/10 flex items-center justify-between px-8 bg-white/80 backdrop-blur-md sticky top-0 z-10">
           <h2 className="text-sm font-bold uppercase tracking-widest text-brand-darkest">
-            {location.pathname === '/' ? 'Übersicht' : location.pathname.substring(1).toUpperCase()}
+            {
+              { '/': 'Übersicht', '/absences': 'Abwesenheit', '/calendar': 'Team-Kalender', '/time': 'Zeiterfassung', '/documents': 'Dokumente', '/admin': 'Admin / Freigaben' }[location.pathname] || location.pathname.substring(1).toUpperCase()
+            }
           </h2>
           <div className="flex items-center gap-4">
             <div className="text-[11px] font-bold text-brand/60 bg-brand-soft px-3 py-1.5 rounded-sm uppercase tracking-tighter border border-brand/10">

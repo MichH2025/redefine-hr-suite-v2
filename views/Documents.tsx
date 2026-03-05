@@ -130,19 +130,19 @@ const Documents: React.FC<DocumentsProps> = ({ user, allUsers }) => {
   };
 
   return (
-    <div className="max-w-6xl mx-auto space-y-8 animate-fadeIn">
-      <div className="flex flex-col md:flex-row justify-between items-start md:items-end border-b border-brand/10 pb-6 gap-6">
+    <div className="max-w-6xl mx-auto space-y-6 md:space-y-8 animate-fadeIn">
+      <div className="flex flex-col md:flex-row justify-between items-start md:items-end border-b border-brand/10 pb-4 md:pb-6 gap-4 md:gap-6">
         <div>
-          <h1 className="text-3xl font-bold tracking-tight text-brand-darkest uppercase">Dokumentenarchiv</h1>
-          <p className="text-brand/50 text-sm mt-1 uppercase tracking-[0.2em] font-bold">REDEFINE Asset Management Suite</p>
+          <h1 className="text-xl md:text-3xl font-bold tracking-tight text-brand-darkest uppercase">Dokumentenarchiv</h1>
+          <p className="text-brand/50 text-[10px] md:text-sm mt-1 uppercase tracking-[0.2em] font-bold">REDEFINE Asset Management Suite</p>
         </div>
-        
+
         {user.role === UserRole.CEO && (
           <div className="bg-brand-soft/50 p-4 border border-brand/10 flex flex-col sm:flex-row gap-4 items-end w-full md:w-auto">
             <div className="flex flex-col gap-1 w-full sm:w-64">
               <label className="text-[9px] font-bold uppercase tracking-widest text-brand/50">Ziel-Mitarbeiter wählen</label>
-              <select 
-                className="w-full border border-brand/10 p-2 text-xs font-bold uppercase tracking-widest outline-none focus:border-brand bg-white text-brand-darkest h-10"
+              <select
+                className="w-full border border-brand/10 p-2 text-xs font-bold uppercase tracking-widest outline-none focus:border-brand bg-white text-brand-darkest h-11"
                 value={targetUserId}
                 onChange={(e) => setTargetUserId(e.target.value)}
               >
@@ -151,9 +151,9 @@ const Documents: React.FC<DocumentsProps> = ({ user, allUsers }) => {
                 ))}
               </select>
             </div>
-            
-            <label className="bg-brand-darkest text-white px-6 py-2.5 font-bold uppercase tracking-widest text-[10px] flex items-center justify-center gap-2 hover:bg-brand transition-all cursor-pointer h-10 w-full sm:w-auto shadow-xl shadow-brand-darkest/10">
-              <ICONS.Plus size={14} /> 
+
+            <label className="bg-brand-darkest text-white px-6 py-2.5 font-bold uppercase tracking-widest text-[10px] flex items-center justify-center gap-2 hover:bg-brand transition-all cursor-pointer h-11 w-full sm:w-auto shadow-xl shadow-brand-darkest/10">
+              <ICONS.Plus size={14} />
               {isUploading ? 'Wird hochgeladen...' : 'Datei bereitstellen'}
               <input type="file" className="hidden" onChange={handleUpload} disabled={isUploading} accept=".pdf,.doc,.docx,.xls,.xlsx,.png,.jpg,.jpeg" />
             </label>
@@ -161,23 +161,23 @@ const Documents: React.FC<DocumentsProps> = ({ user, allUsers }) => {
         )}
       </div>
 
-      <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
+      <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-4 md:gap-6">
         {loading ? (
           <div className="col-span-full text-center py-20 text-brand/20 uppercase text-[10px] font-bold tracking-[0.4em]">Verzeichnis wird gelesen...</div>
         ) : docs.map(doc => (
-          <div key={doc.id} className="border border-brand/10 p-6 bg-white premium-shadow flex flex-col justify-between group relative transition-all hover:border-brand/40 hover:translate-y-[-2px]">
+          <div key={doc.id} className="border border-brand/10 p-4 md:p-6 bg-white premium-shadow flex flex-col justify-between group relative transition-all hover:border-brand/40 hover:translate-y-[-2px]">
             {user.role === UserRole.CEO && (
-              <div className="mb-4 pb-2 border-b border-brand/5 flex justify-between items-center">
+              <div className="mb-3 md:mb-4 pb-2 border-b border-brand/5 flex justify-between items-center">
                 <span className="text-[9px] font-bold uppercase tracking-tighter text-brand/40">Inhaber:</span>
                 <span className="text-[9px] font-bold uppercase tracking-widest text-brand">{getOwnerName(doc.userId)}</span>
               </div>
             )}
-            
-            <div className="flex items-start gap-4 mb-6">
-              <div className="p-3 bg-brand-soft/50 text-brand group-hover:bg-brand group-hover:text-white transition-all">
+
+            <div className="flex items-start gap-3 md:gap-4 mb-4 md:mb-6">
+              <div className="p-2.5 md:p-3 bg-brand-soft/50 text-brand group-hover:bg-brand group-hover:text-white transition-all flex-shrink-0">
                 <ICONS.Documents size={20} />
               </div>
-              <div className="overflow-hidden">
+              <div className="overflow-hidden min-w-0">
                 <div className="font-bold text-xs truncate text-brand-darkest uppercase tracking-tight" title={doc.name}>{doc.name}</div>
                 <div className="text-[9px] text-brand/40 uppercase font-bold tracking-widest mt-1">
                   {doc.type} • {doc.uploadDate}
@@ -185,18 +185,19 @@ const Documents: React.FC<DocumentsProps> = ({ user, allUsers }) => {
               </div>
             </div>
 
-            <button 
+            <button
               onClick={() => handleDownload(doc)}
-              className="w-full flex items-center justify-center gap-2 py-2 border border-brand-darkest text-brand-darkest text-[10px] font-bold uppercase tracking-widest hover:bg-brand-darkest hover:text-white transition-all"
+              className="w-full flex items-center justify-center gap-2 py-3 md:py-2 border border-brand-darkest text-brand-darkest text-[10px] font-bold uppercase tracking-widest hover:bg-brand-darkest hover:text-white transition-all"
             >
               <ICONS.Download size={14} /> Download
             </button>
           </div>
         ))}
-        
+
         {!loading && docs.length === 0 && (
-          <div className="col-span-full py-32 border-2 border-dashed border-brand/10 text-center bg-brand-soft/10">
-            <ICONS.Documents size={40} className="mx-auto text-brand/10 mb-4" />
+          <div className="col-span-full py-20 md:py-32 border-2 border-dashed border-brand/10 text-center bg-brand-soft/10">
+            <ICONS.Documents size={32} className="mx-auto text-brand/10 mb-4 md:hidden" />
+            <ICONS.Documents size={40} className="mx-auto text-brand/10 mb-4 hidden md:block" />
             <p className="text-brand/30 uppercase tracking-[0.3em] text-[10px] font-bold">Keine Unterlagen in der Cloud hinterlegt</p>
           </div>
         )}

@@ -1,8 +1,24 @@
 
+// ── Helpers ──────────────────────────────────────────────────
+
+const toDateKey = (d: Date): string =>
+  `${d.getFullYear()}-${String(d.getMonth() + 1).padStart(2, '0')}-${String(d.getDate()).padStart(2, '0')}`;
+
+const addDays = (base: Date, days: number): Date => {
+  const d = new Date(base.getTime() + days * 86_400_000);
+  return d;
+};
+
+// ── Year-based module-level cache ────────────────────────────
+
+const holidayCache: Record<number, Map<string, string>> = {};
+
+// ── Exported functions ───────────────────────────────────────
+
 /**
  * Calculates Easter Sunday for a given year using the Gauss algorithm.
  */
-const getEasterSunday = (year: number): Date => {
+export const getEasterSunday = (year: number): Date => {
   const a = year % 19;
   const b = Math.floor(year / 100);
   const c = year % 100;
@@ -21,71 +37,81 @@ const getEasterSunday = (year: number): Date => {
 };
 
 /**
- * Returns a list of Berlin holidays (YYYY-MM-DD) for a specific year.
+ * Returns all 12 Berlin public holidays for a given year as Map<dateString, name>.
+ * Results are cached per year at module level.
  */
-const getBerlinHolidays = (year: number): string[] => {
+export const getBerlinHolidays = (year: number): Map<string, string> => {
+  if (holidayCache[year]) return holidayCache[year];
+
   const easter = getEasterSunday(year);
-  
-  const addDays = (date: Date, days: number): string => {
-    const d = new Date(date);
-    d.setDate(d.getDate() + days);
-    return `${d.getFullYear()}-${String(d.getMonth() + 1).padStart(2, '0')}-${String(d.getDate()).padStart(2, '0')}`;
-  };
 
-  const fixedHolidays = [
-    `${year}-01-01`, // Neujahr
-    `${year}-03-08`, // Internationaler Frauentag
-    `${year}-05-01`, // Tag der Arbeit
-    `${year}-10-03`, // Tag der Deutschen Einheit
-    `${year}-12-25`, // 1. Weihnachtstag
-    `${year}-12-26`, // 2. Weihnachtstag
+  const holidays: ReadonlyArray<{ date: string; name: string }> = [
+    { date: `${year}-01-01`, name: 'Neujahr' },
+    { date: `${year}-03-08`, name: 'Internationaler Frauentag' },
+    { date: toDateKey(addDays(easter, -2)), name: 'Karfreitag' },
+    { date: toDateKey(easter), name: 'Ostersonntag' },
+    { date: toDateKey(addDays(easter, 1)), name: 'Ostermontag' },
+    { date: `${year}-05-01`, name: 'Tag der Arbeit' },
+    { date: toDateKey(addDays(easter, 39)), name: 'Christi Himmelfahrt' },
+    { date: toDateKey(addDays(easter, 49)), name: 'Pfingstsonntag' },
+    { date: toDateKey(addDays(easter, 50)), name: 'Pfingstmontag' },
+    { date: `${year}-10-03`, name: 'Tag der Deutschen Einheit' },
+    { date: `${year}-12-25`, name: '1. Weihnachtsfeiertag' },
+    { date: `${year}-12-26`, name: '2. Weihnachtsfeiertag' },
   ];
 
-  const floatingHolidays = [
-    addDays(easter, -2), // Karfreitag
-    addDays(easter, 1),  // Ostermontag
-    addDays(easter, 39), // Christi Himmelfahrt
-    addDays(easter, 50), // Pfingstmontag
-  ];
+  const map = new Map<string, string>();
+  for (const h of holidays) {
+    map.set(h.date, h.name);
+  }
 
-  return [...fixedHolidays, ...floatingHolidays];
+  holidayCache[year] = map;
+  return map;
 };
 
 /**
- * Calculates net working days (excluding Sat, Sun, and dynamic Berlin Holidays)
+ * Returns the holiday name for a given date, or null if it's not a holiday.
  */
-export const calculateWorkingDays = (start: Date, end: Date): number => {
+export const getHolidayName = (date: Date): string | null => {
+  return getBerlinHolidays(date.getFullYear()).get(toDateKey(date)) ?? null;
+};
+
+/**
+ * Returns true if the date is a weekend (Sat/Sun) or a Berlin public holiday.
+ */
+export const isNonWorkday = (date: Date): boolean => {
+  const day = date.getDay();
+  return day === 0 || day === 6 || getHolidayName(date) !== null;
+};
+
+/**
+ * Calculates the number of working days between start and end (inclusive),
+ * excluding weekends and Berlin public holidays.
+ */
+export const calcWorkDays = (start: Date, end: Date): number => {
   let count = 0;
-  const curDate = new Date(start.getFullYear(), start.getMonth(), start.getDate());
+  const cur = new Date(start.getFullYear(), start.getMonth(), start.getDate());
   const endDate = new Date(end.getFullYear(), end.getMonth(), end.getDate());
-  
-  // Cache for holidays to avoid recalculating for the same year
-  const holidayCache: Record<number, string[]> = {};
 
-  while (curDate <= endDate) {
-    const year = curDate.getFullYear();
-    if (!holidayCache[year]) {
-      holidayCache[year] = getBerlinHolidays(year);
-    }
-
-    const dayOfWeek = curDate.getDay(); // 0 = Sunday, 6 = Saturday
-    const isWeekend = dayOfWeek === 0 || dayOfWeek === 6;
-    
-    const m = String(curDate.getMonth() + 1).padStart(2, '0');
-    const d = String(curDate.getDate()).padStart(2, '0');
-    const dateString = `${year}-${m}-${d}`;
-    
-    const isHoliday = holidayCache[year].includes(dateString);
-    
-    if (!isWeekend && !isHoliday) {
+  while (cur <= endDate) {
+    if (!isNonWorkday(cur)) {
       count++;
     }
-    curDate.setDate(curDate.getDate() + 1);
+    cur.setDate(cur.getDate() + 1);
   }
   return count;
 };
 
-export const formatDate = (dateString: string) => {
+// ── Existing functions (preserved) ───────────────────────────
+
+/**
+ * Calculates net working days (excluding Sat, Sun, and dynamic Berlin Holidays).
+ */
+export const calculateWorkingDays = (start: Date, end: Date): number => {
+  return calcWorkDays(start, end);
+};
+
+export const formatDate = (dateString: string): string => {
   const date = new Date(dateString);
   return date.toLocaleDateString('de-DE', {
     day: '2-digit',

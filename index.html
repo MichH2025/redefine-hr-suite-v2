@@ -2,9 +2,10 @@
 <html lang="de">
   <head>
     <meta charset="UTF-8" />
-    <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no" />
+    <meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover" />
     <meta name="apple-mobile-web-app-capable" content="yes" />
-    <meta name="apple-mobile-web-app-status-bar-style" content="black-translucent" />
+    <meta name="apple-mobile-web-app-status-bar-style" content="default" />
+    <meta name="theme-color" content="#FDFBF9" />
     <meta name="description" content="REDEFINE Asset Management GmbH - Internal HR Suite" />
     <title>REDEFINE Suite | HR Management</title>
     
@@ -76,14 +77,28 @@
         from { opacity: 0; transform: translateY(10px); }
         to { opacity: 1; transform: translateY(0); }
       }
-      ::-webkit-scrollbar {
-        width: 6px;
+      html, body {
+        overflow-x: hidden;
       }
-      ::-webkit-scrollbar-track {
-        background: #F7F3F0;
+      @media (min-width: 768px) {
+        ::-webkit-scrollbar {
+          width: 6px;
+        }
+        ::-webkit-scrollbar-track {
+          background: #F7F3F0;
+        }
+        ::-webkit-scrollbar-thumb {
+          background: #A86E3A;
+        }
       }
-      ::-webkit-scrollbar-thumb {
-        background: #A86E3A;
+      @media (max-width: 767px) {
+        ::-webkit-scrollbar {
+          display: none;
+        }
+        * {
+          -ms-overflow-style: none;
+          scrollbar-width: none;
+        }
       }
     </style>
   </head>

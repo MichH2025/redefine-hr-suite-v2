@@ -1,11 +1,12 @@
 
 import React from 'react';
-import { 
-  LayoutDashboard, 
-  Calendar, 
-  Clock, 
-  FileText, 
-  ShieldCheck, 
+import {
+  LayoutDashboard,
+  Calendar,
+  Users,
+  Clock,
+  FileText,
+  ShieldCheck,
   LogOut,
   User as UserIcon,
   ChevronRight,
@@ -13,7 +14,9 @@ import {
   CheckCircle2,
   XCircle,
   Download,
-  Clock3
+  Clock3,
+  Pencil,
+  Trash2
 } from 'lucide-react';
 
 export const COLORS = {
@@ -26,6 +29,7 @@ export const COLORS = {
 export const ICONS = {
   Dashboard: LayoutDashboard,
   Calendar: Calendar,
+  TeamCalendar: Users,
   Time: Clock,
   Documents: FileText,
   Admin: ShieldCheck,
@@ -36,5 +40,7 @@ export const ICONS = {
   Check: CheckCircle2,
   X: XCircle,
   Download: Download,
-  Timer: Clock3
+  Timer: Clock3,
+  Pencil: Pencil,
+  Trash: Trash2
 };
